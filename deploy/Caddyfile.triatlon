@@ -6,6 +6,10 @@ triatlon.pdcgsolutions.com {
 
 	# API (FastAPI no porto 8001)
 	handle /api/* {
+		# As fotos de perfil chegan xa reducidas desde o navegador; isto corta abusos
+		request_body {
+			max_size 30MB
+		}
 		reverse_proxy 127.0.0.1:8001
 	}
 

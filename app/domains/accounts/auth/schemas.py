@@ -13,6 +13,7 @@ class AthleteRef(BaseModel):
     id: int
     full_name: str
     is_minor: bool
+    photo_file: str | None = None
 
 
 class MeResponse(BaseModel):

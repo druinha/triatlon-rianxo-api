@@ -25,6 +25,11 @@ class Settings(BaseSettings):
 
     password_min_length: int = 8
 
+    # Fotos de perfil (no disco do servidor, fóra da web pública: sérveas a API só a membros)
+    media_dir: str = "./media"
+    # A web xa a comprime antes de enviala; este límite só cobre navegadores que non poden
+    photo_max_mb: int = 25
+
     @property
     def cors_list(self) -> list[str]:
         return [o.strip().rstrip("/") for o in self.cors_origins.split(",") if o.strip()]

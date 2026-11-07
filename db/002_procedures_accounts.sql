@@ -305,7 +305,8 @@ BEGIN
 
   SELECT u.id AS user_id, u.email, u.display_name, u.lang,
          (SELECT GROUP_CONCAT(r.role ORDER BY r.role) FROM user_roles r WHERE r.user_id = u.id) AS roles,
-         (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'full_name', a.full_name, 'is_minor', a.is_minor = 1))
+         (SELECT JSON_ARRAYAGG(JSON_OBJECT('id', a.id, 'full_name', a.full_name, 'is_minor', a.is_minor = 1,
+                                           'photo_file', a.photo_file))
             FROM athletes a
            WHERE a.is_active = 1
              AND (a.user_id = u.id
