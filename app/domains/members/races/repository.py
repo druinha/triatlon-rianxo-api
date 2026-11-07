@@ -85,6 +85,7 @@ class RaceRepository:
             "p_sport": body.sport,
             "p_distances": body.distances,
             "p_official_url": str(body.official_url) if body.official_url else None,
+            "p_price": body.price,
         }
 
     async def create_race(self, user_id: int, body) -> int:

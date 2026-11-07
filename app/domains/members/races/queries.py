@@ -3,11 +3,11 @@ GET_RACE = "CALL Race_Get(:p_race_id, :p_viewer_id);"
 GET_ATTENDEES = "CALL Race_GetAttendees(:p_race_id, :p_viewer_id);"
 CREATE_RACE = (
     "CALL Race_Create(:p_user_id, :p_name, :p_race_date, :p_start_time, :p_place, :p_zone, :p_sport, "
-    ":p_distances, :p_official_url);"
+    ":p_distances, :p_official_url, :p_price);"
 )
 UPDATE_RACE = (
     "CALL Race_Update(:p_race_id, :p_user_id, :p_name, :p_race_date, :p_start_time, :p_place, :p_zone, "
-    ":p_sport, :p_distances, :p_official_url);"
+    ":p_sport, :p_distances, :p_official_url, :p_price);"
 )
 DELETE_RACE = "CALL Race_Delete(:p_race_id, :p_user_id);"
 SET_ATTENDANCE = (

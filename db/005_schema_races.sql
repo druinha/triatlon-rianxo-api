@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS races (
   sport         ENUM('triathlon','duathlon','aquathlon','running','trail','road_cycling','mtb','swimming','open_water','other') NOT NULL,
   distances     VARCHAR(200)    NULL,          -- texto libre separado por comas: "Sprint, Olímpico"
   official_url  VARCHAR(500)    NULL,
+  price         VARCHAR(80)     NULL,          -- texto libre: "25 €", "25 €, federados 20 €"
   created_by    BIGINT UNSIGNED NULL,
   created_at    DATETIME        NOT NULL DEFAULT (UTC_TIMESTAMP()),
   updated_at    DATETIME        NOT NULL DEFAULT (UTC_TIMESTAMP()) ON UPDATE CURRENT_TIMESTAMP,

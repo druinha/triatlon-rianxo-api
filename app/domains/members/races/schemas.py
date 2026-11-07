@@ -1,3 +1,4 @@
+import re
 from datetime import date, timedelta
 from typing import Literal
 
@@ -19,6 +20,8 @@ class RaceIn(BaseModel):
     sport: RaceSport
     distances: str | None = Field(default=None, max_length=200)
     official_url: HttpUrl | None = None
+    # Texto libre: "25 €", "25 €, federados 20 €". Un número só pasa a "25 €".
+    price: str | None = Field(default=None, max_length=80)
     # Ao crear: apuntar automaticamente o perfil propio de quen a engade
     join: bool = True
 
@@ -43,6 +46,16 @@ class RaceIn(BaseModel):
             return None
         parts = [" ".join(p.split()) for p in v.split(",")]
         return ", ".join(p for p in parts if p) or None
+
+    @field_validator("price")
+    @classmethod
+    def clean_price(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v = " ".join(v.split())
+        if re.fullmatch(r"\d{1,4}([.,]\d{1,2})?", v):
+            v = f"{v.replace('.', ',')} €"
+        return v or None
 
 
 class AttendanceIn(BaseModel):
@@ -101,6 +114,7 @@ class RaceDetail(BaseModel):
     sport: RaceSport
     distances: str | None
     official_url: str | None
+    price: str | None
     is_past: bool
     going_count: int
     maybe_count: int
@@ -142,3 +156,4 @@ class PublicRace(BaseModel):
     sport: RaceSport
     distances: str | None
     official_url: str | None
+    price: str | None

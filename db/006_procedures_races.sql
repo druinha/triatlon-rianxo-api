@@ -2,8 +2,8 @@
 -- Mesma convención: sen transaccións aquí; os erros de estado van nunha columna `status`.
 --
 -- Quen ve quen: as listas de "quen vai" usan Athlete_AccessLevel (004), así que os nenos
--- da escola só aparecen ás súas familias, adestradores e admins. Os contadores públicos
--- (web) contan a todos, pero sen nomes.
+-- da escola só aparecen ás súas familias, adestradores e admins. A web pública só recibe
+-- as carreiras onde vai alguén, sen nomes nin contadores.
 
 DELIMITER $$
 
@@ -61,7 +61,7 @@ END $$
 DROP PROCEDURE IF EXISTS Race_Get $$
 CREATE PROCEDURE Race_Get(IN p_race_id BIGINT UNSIGNED, IN p_viewer_id BIGINT UNSIGNED)
 BEGIN
-  SELECT r.id, r.name, r.race_date, r.start_time, r.place, r.zone, r.sport, r.distances, r.official_url,
+  SELECT r.id, r.name, r.race_date, r.start_time, r.place, r.zone, r.sport, r.distances, r.official_url, r.price,
          r.race_date < CURDATE() AS is_past,
          (SELECT COUNT(*) FROM race_attendance a
            WHERE a.race_id = r.id AND a.status = 'going'
@@ -100,13 +100,14 @@ CREATE PROCEDURE Race_Create(
   IN p_zone         VARCHAR(10),
   IN p_sport        VARCHAR(20),
   IN p_distances    VARCHAR(200),
-  IN p_official_url VARCHAR(500)
+  IN p_official_url VARCHAR(500),
+  IN p_price        VARCHAR(80)
 )
 BEGIN
   DECLARE v_id BIGINT UNSIGNED;
-  INSERT INTO races (name, race_date, start_time, place, zone, sport, distances, official_url, created_by)
+  INSERT INTO races (name, race_date, start_time, place, zone, sport, distances, official_url, price, created_by)
   VALUES (TRIM(p_name), p_race_date, p_start_time, TRIM(p_place), p_zone, p_sport,
-          NULLIF(TRIM(p_distances), ''), NULLIF(TRIM(p_official_url), ''), p_user_id);
+          NULLIF(TRIM(p_distances), ''), NULLIF(TRIM(p_official_url), ''), NULLIF(TRIM(p_price), ''), p_user_id);
   SET v_id = LAST_INSERT_ID();
   SELECT v_id AS id;
 END $$
@@ -122,7 +123,8 @@ CREATE PROCEDURE Race_Update(
   IN p_zone         VARCHAR(10),
   IN p_sport        VARCHAR(20),
   IN p_distances    VARCHAR(200),
-  IN p_official_url VARCHAR(500)
+  IN p_official_url VARCHAR(500),
+  IN p_price        VARCHAR(80)
 )
 proc: BEGIN
   IF NOT EXISTS (SELECT 1 FROM races WHERE id = p_race_id) THEN SELECT 'not_found' AS status; LEAVE proc; END IF;
@@ -131,7 +133,8 @@ proc: BEGIN
   UPDATE races
      SET name = TRIM(p_name), race_date = p_race_date, start_time = p_start_time, place = TRIM(p_place),
          zone = p_zone, sport = p_sport,
-         distances = NULLIF(TRIM(p_distances), ''), official_url = NULLIF(TRIM(p_official_url), '')
+         distances = NULLIF(TRIM(p_distances), ''), official_url = NULLIF(TRIM(p_official_url), ''),
+         price = NULLIF(TRIM(p_price), '')
    WHERE id = p_race_id;
   SELECT 'ok' AS status;
 END $$
@@ -217,11 +220,12 @@ BEGIN
   LIMIT 40;
 END $$
 
--- Web pública: próximas carreiras onde vai alguén do clube. Só contadores, nunca nomes.
+-- Web pública: próximas carreiras onde vai alguén do clube. going_count só serve para filtrar:
+-- a API non o envía (PublicRace en schemas.py).
 DROP PROCEDURE IF EXISTS Race_PublicList $$
 CREATE PROCEDURE Race_PublicList(IN p_limit INT)
 BEGIN
-  SELECT r.id, r.name, r.race_date, r.start_time, r.place, r.zone, r.sport, r.distances, r.official_url,
+  SELECT r.id, r.name, r.race_date, r.start_time, r.place, r.zone, r.sport, r.distances, r.official_url, r.price,
          (SELECT COUNT(*) FROM race_attendance a JOIN athletes t ON t.id = a.athlete_id
            WHERE a.race_id = r.id AND a.status = 'going' AND t.is_active = 1) AS going_count
   FROM races r
