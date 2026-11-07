@@ -46,8 +46,10 @@ END $$
 DROP PROCEDURE IF EXISTS Notification_List $$
 CREATE PROCEDURE Notification_List(IN p_user_id BIGINT UNSIGNED, IN p_limit INT)
 BEGIN
+  -- week_start: a semana do plan nos avisos de plan publicado (a táboa de plans vén no 012)
   SELECT n.id, n.kind, n.athlete_id, a.full_name AS athlete_name, n.ref_id, n.sport,
-         n.read_at IS NOT NULL AS is_read, n.created_at
+         n.read_at IS NOT NULL AS is_read, n.created_at,
+         IF(n.kind = 'plan_published', (SELECT p.week_start FROM training_plans p WHERE p.id = n.ref_id), NULL) AS week_start
     FROM notifications n LEFT JOIN athletes a ON a.id = n.athlete_id
    WHERE n.user_id = p_user_id
    ORDER BY n.created_at DESC, n.id DESC

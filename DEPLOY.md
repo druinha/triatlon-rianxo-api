@@ -41,6 +41,8 @@ sudo mysql triatlon_rianxo < db/007_races_price.sql
 sudo mysql triatlon_rianxo < db/008_athlete_names.sql
 sudo mysql triatlon_rianxo < db/010_schema_tests.sql
 sudo mysql triatlon_rianxo < db/011_procedures_tests.sql
+sudo mysql triatlon_rianxo < db/012_schema_plans.sql
+sudo mysql triatlon_rianxo < db/013_procedures_plans.sql
 # Opcional: carreiras de nov. 2026 a out. 2027 no calendario
 sudo mysql triatlon_rianxo < db/009_seed_races_2027.sql
 ```

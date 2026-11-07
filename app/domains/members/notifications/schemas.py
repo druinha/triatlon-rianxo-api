@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
@@ -11,6 +11,7 @@ class NotificationItem(BaseModel):
     ref_id: int | None
     sport: str | None
     is_read: bool
+    week_start: date | None = None
     created_at: datetime
 
 
