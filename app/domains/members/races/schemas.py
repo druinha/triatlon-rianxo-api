@@ -131,6 +131,8 @@ class AthleteRace(BaseModel):
 
 
 class PublicRace(BaseModel):
+    """Web pública: só carreiras onde vai alguén do clube, sen nomes nin cantos van.
+    (O procedemento calcula going_count para filtrar, pero non se envía.)"""
     id: int
     name: str
     race_date: date
@@ -140,4 +142,3 @@ class PublicRace(BaseModel):
     sport: RaceSport
     distances: str | None
     official_url: str | None
-    going_count: int
