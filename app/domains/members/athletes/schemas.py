@@ -21,11 +21,15 @@ class DirectoryItem(BaseModel):
 
 class ProfileResponse(BaseModel):
     id: int
+    # O nome que ven todos: o alcume se o hai; se non, nome e apelidos
     full_name: str
+    nickname: str | None
     is_minor: bool
     is_active: bool
     photo_file: str | None
     # Só para quen ten acceso completo (o propio atleta, titores, adestradores e admins)
+    first_name: str | None
+    last_name: str | None
     birth_date: date | None
     license_number: str | None
     chip_code: str | None
@@ -37,19 +41,29 @@ class ProfileResponse(BaseModel):
 
 
 class ProfileUpdate(BaseModel):
-    full_name: str = Field(min_length=2, max_length=160)
+    first_name: str = Field(min_length=1, max_length=80)
+    last_name: str | None = Field(default=None, max_length=120)
+    # Alcume ou nome polo que o coñecen: é o que ven os demais. Baleiro = nome e apelidos.
+    nickname: str | None = Field(default=None, max_length=60)
     birth_date: date | None = None
     license_number: str | None = Field(default=None, max_length=40)
     chip_code: str | None = Field(default=None, max_length=40)
     sports: list[Sport] = Field(default_factory=list, max_length=9)
 
-    @field_validator("full_name")
+    @field_validator("first_name")
     @classmethod
-    def strip_name(cls, v: str) -> str:
+    def strip_first(cls, v: str) -> str:
         v = " ".join(v.split())
-        if len(v) < 2:
+        if not v:
             raise ValueError("name_required")
         return v
+
+    @field_validator("last_name", "nickname")
+    @classmethod
+    def strip_optional(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        return " ".join(v.split()) or None
 
     @field_validator("birth_date")
     @classmethod

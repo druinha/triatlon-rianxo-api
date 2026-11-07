@@ -21,7 +21,7 @@ class AthleteManagement:
 
     async def update_profile(self, athlete_id: int, editor_id: int, body: ProfileUpdate) -> dict:
         await self.database.update_profile(
-            athlete_id, editor_id, body.full_name, body.birth_date,
+            athlete_id, editor_id, body.first_name, body.last_name, body.nickname, body.birth_date,
             body.license_number, body.chip_code, body.sports,
         )
         return await self.database.get_profile(athlete_id, editor_id)

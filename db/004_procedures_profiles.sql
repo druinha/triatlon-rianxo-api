@@ -48,7 +48,17 @@ BEGIN
   DECLARE v_full  TINYINT DEFAULT 0;
   SET v_full = v_level IN ('manage', 'staff');
 
+  -- full_name = o nome que ven todos (alcume ou nome e apelidos).
+  -- O nome real por separado só para quen ten acceso completo. Os perfís creados
+  -- por invitación aínda non o teñen partido: sácase de full_name.
   SELECT a.id, a.full_name, a.is_minor, a.is_active, a.photo_file,
+         IF(v_full, COALESCE(a.first_name, SUBSTRING_INDEX(TRIM(a.full_name), ' ', 1)), NULL) AS first_name,
+         IF(v_full,
+            IF(a.first_name IS NULL,
+               NULLIF(TRIM(SUBSTRING(TRIM(a.full_name), CHAR_LENGTH(SUBSTRING_INDEX(TRIM(a.full_name), ' ', 1)) + 1)), ''),
+               a.last_name),
+            NULL) AS last_name,
+         a.nickname,
          IF(v_full, a.birth_date, NULL)     AS birth_date,
          IF(v_full, a.license_number, NULL) AS license_number,
          IF(v_full, a.chip_code, NULL)      AS chip_code,
@@ -78,11 +88,14 @@ BEGIN
 END $$
 
 -- Garda os datos do perfil. p_sports é un array JSON de claves: ["triathlon","running"].
+-- Necesita as columnas de 008_athlete_names.sql.
 DROP PROCEDURE IF EXISTS Athlete_Update $$
 CREATE PROCEDURE Athlete_Update(
   IN p_athlete_id BIGINT UNSIGNED,
   IN p_editor_id  BIGINT UNSIGNED,
-  IN p_full_name  VARCHAR(160),
+  IN p_first_name VARCHAR(80),
+  IN p_last_name  VARCHAR(120),
+  IN p_nickname   VARCHAR(60),
   IN p_birth_date DATE,
   IN p_license    VARCHAR(40),
   IN p_chip       VARCHAR(40),
@@ -95,7 +108,12 @@ proc: BEGIN
   IF v_level <> 'manage' THEN SELECT 'forbidden' AS status; LEAVE proc; END IF;
 
   UPDATE athletes
-     SET full_name      = TRIM(p_full_name),
+     SET first_name     = TRIM(p_first_name),
+         last_name      = NULLIF(TRIM(p_last_name), ''),
+         nickname       = NULLIF(TRIM(p_nickname), ''),
+         -- O nome que ven os demais: o alcume se o hai; se non, nome e apelidos
+         full_name      = COALESCE(NULLIF(TRIM(p_nickname), ''),
+                                   TRIM(CONCAT(TRIM(p_first_name), ' ', COALESCE(TRIM(p_last_name), '')))),
          birth_date     = p_birth_date,
          license_number = NULLIF(TRIM(p_license), ''),
          chip_code      = NULLIF(UPPER(TRIM(p_chip)), '')
