@@ -37,6 +37,12 @@ sudo mysql triatlon_rianxo < db/003_schema_profiles.sql
 sudo mysql triatlon_rianxo < db/004_procedures_profiles.sql
 sudo mysql triatlon_rianxo < db/005_schema_races.sql
 sudo mysql triatlon_rianxo < db/006_procedures_races.sql
+sudo mysql triatlon_rianxo < db/007_races_price.sql
+sudo mysql triatlon_rianxo < db/008_athlete_names.sql
+sudo mysql triatlon_rianxo < db/010_schema_tests.sql
+sudo mysql triatlon_rianxo < db/011_procedures_tests.sql
+# Opcional: carreiras de nov. 2026 a out. 2027 no calendario
+sudo mysql triatlon_rianxo < db/009_seed_races_2027.sql
 ```
 Cárgaos sempre nesta orde. Todos se poden volver executar sen perder datos.
 

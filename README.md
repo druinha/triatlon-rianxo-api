@@ -62,6 +62,12 @@ mysql -u root -p triatlon_rianxo < db/003_schema_profiles.sql
 mysql -u root -p triatlon_rianxo < db/004_procedures_profiles.sql
 mysql -u root -p triatlon_rianxo < db/005_schema_races.sql
 mysql -u root -p triatlon_rianxo < db/006_procedures_races.sql
+mysql -u root -p triatlon_rianxo < db/007_races_price.sql
+mysql -u root -p triatlon_rianxo < db/008_athlete_names.sql
+mysql -u root -p triatlon_rianxo < db/010_schema_tests.sql
+mysql -u root -p triatlon_rianxo < db/011_procedures_tests.sql
+# Opcional: carreiras de nov. 2026 a out. 2027 no calendario
+mysql -u root -p triatlon_rianxo < db/009_seed_races_2027.sql
 uvicorn app.main:app --reload --port 8001
 python -m app.cli invite --email ti@example.com --name "O teu nome" --admin --coach
 ```
