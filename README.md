@@ -11,11 +11,13 @@ app/
     users/         listar contas, activar/desactivar, ligazón de contrasinal (admin)
   domains/members/
     athletes/      perfil do atleta (ver/editar, foto) e directorio de atletas
+    races/         calendario: carreiras, vou/quizais, duplicados, lista pública (/api/public/races)
   cli.py           crear a primeira invitación de admin
 db/                001–004: esquema e procedementos (cárganse en orde)
 deploy/            servizo systemd e bloque de Caddy
 tests/flow_test.py    contas e invitacións (45 comprobacións)
 tests/profile_test.py perfil, permisos e fotos (54 comprobacións)
+tests/races_test.py   calendario, visibilidade e web pública (51 comprobacións)
 ```
 
 ## Seguridade
@@ -43,6 +45,12 @@ tests/profile_test.py perfil, permisos e fotos (54 comprobacións)
 Os permisos decídeos `Athlete_AccessLevel` na BD; a API nunca devolve os campos que non tocan.
 Fotos: no disco (`MEDIA_DIR/athletes/`), comprimida no navegador (JPEG 2048 px), gardada como WebP 800×800 sen EXIF, nome aleatorio; sérveas a API só a membros con sesión.
 
+## Calendario
+- Calquera membro engade carreiras; editala ou borrala só quen a creou e os admins.
+- «Non vou» = sen fila en `race_attendance`. Quen a crea queda apuntado se ten perfil propio.
+- As listas de «quen vai» seguen os mesmos permisos ca o perfil: os nenos da escola só os ven familias, adestradores e admins.
+- `/api/public/races` (sen sesión, caché 5 min): só carreiras con alguén que marcou «Vou», e só o número de atletas.
+
 ## Desenvolvemento local
 ```bash
 python -m venv venv && source venv/bin/activate     # Windows: venv\Scripts\activate
@@ -52,6 +60,8 @@ mysql -u root -p triatlon_rianxo < db/001_schema.sql
 mysql -u root -p triatlon_rianxo < db/002_procedures_accounts.sql
 mysql -u root -p triatlon_rianxo < db/003_schema_profiles.sql
 mysql -u root -p triatlon_rianxo < db/004_procedures_profiles.sql
+mysql -u root -p triatlon_rianxo < db/005_schema_races.sql
+mysql -u root -p triatlon_rianxo < db/006_procedures_races.sql
 uvicorn app.main:app --reload --port 8001
 python -m app.cli invite --email ti@example.com --name "O teu nome" --admin --coach
 ```

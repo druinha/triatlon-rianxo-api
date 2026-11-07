@@ -35,6 +35,8 @@ sudo mysql triatlon_rianxo < db/001_schema.sql
 sudo mysql triatlon_rianxo < db/002_procedures_accounts.sql
 sudo mysql triatlon_rianxo < db/003_schema_profiles.sql
 sudo mysql triatlon_rianxo < db/004_procedures_profiles.sql
+sudo mysql triatlon_rianxo < db/005_schema_races.sql
+sudo mysql triatlon_rianxo < db/006_procedures_races.sql
 ```
 Cárgaos sempre nesta orde. Todos se poden volver executar sen perder datos.
 
@@ -94,6 +96,14 @@ echo "MEDIA_DIR=/var/lib/triatlon-api/media" >> .env
 venv/bin/pip install -r requirements.txt && sudo systemctl restart triatlon-api
 ```
 E no Caddyfile engade o bloque `request_body` de `deploy/Caddyfile.triatlon`.
+
+### Fase 3 (calendario), se a API xa estaba subida
+```bash
+cd /opt/triatlon-api
+sudo mysql --default-character-set=utf8mb4 triatlon_rianxo < db/005_schema_races.sql
+sudo mysql --default-character-set=utf8mb4 triatlon_rianxo < db/006_procedures_races.sql
+sudo systemctl restart triatlon-api
+```
 Se cambian os ficheiros de `db/`, súbeos e volve cargalos (os `.sql` pódense executar varias veces).
 
 ## Copias de seguridade
