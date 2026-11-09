@@ -11,6 +11,7 @@ from app.domains.members.plans.queries import (
     DELETE_PLAN,
     FOR_ATHLETE,
     GET_FOR_EDITOR,
+    GET_PLAN,
     GROUP_MEMBERS,
     LIST_GROUPS,
     LIST_WEEK,
@@ -118,6 +119,12 @@ class PlanRepository:
 
     async def delete_plan(self, plan_id: int, viewer_id: int) -> None:
         await self._write(DELETE_PLAN, {"p_plan_id": plan_id, "p_viewer_id": viewer_id})
+
+    async def get_plan(self, plan_id: int, viewer_id: int) -> dict:
+        rows = await self._rows(GET_PLAN, {"p_plan_id": plan_id, "p_viewer_id": viewer_id})
+        if not rows:
+            raise HTTPException(status_code=404, detail="plan_not_found")
+        return rows[0]
 
     async def progress(self, plan_id: int, viewer_id: int) -> list[dict]:
         return await self._rows(PROGRESS, {"p_plan_id": plan_id, "p_viewer_id": viewer_id})

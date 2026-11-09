@@ -1,7 +1,9 @@
 from dataclasses import dataclass
 from datetime import date
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
+from typing import Literal
+
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Response, UploadFile
 
 from app.core.auth import AuthContext, get_auth_context, require_coach
 from app.domains.members.plans.management import PlanManagement, monday_of
@@ -115,6 +117,16 @@ async def import_plan(file: UploadFile = File(...), ctx: Context = Depends(get_c
 @router.get("/{plan_id}/progress", response_model=list[ProgressRow])
 async def progress(plan_id: int, ctx: Context = Depends(get_coach_ctx)):
     return await ctx.mgmt.progress(plan_id, ctx.user_id)
+
+
+@router.get("/{plan_id}/progress.xlsx")
+async def export_progress(plan_id: int, lang: Literal["gl", "es"] = "gl", ctx: Context = Depends(get_coach_ctx)):
+    data, name = await ctx.mgmt.export_progress(plan_id, ctx.user_id, lang)
+    return Response(
+        content=data,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{name}"', "Cache-Control": "no-store"},
+    )
 
 
 @router.post("/{plan_id}/delete", status_code=204)

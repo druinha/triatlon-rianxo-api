@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from starlette.concurrency import run_in_threadpool
 
-from app.domains.members.plans import importer
+from app.domains.members.plans import export, importer
 from app.domains.members.plans.repository import PlanRepository
 from app.domains.members.plans.schemas import DoneIn, GroupIn, PlanIn
 
@@ -64,6 +64,14 @@ class PlanManagement:
 
     async def progress(self, plan_id: int, viewer_id: int) -> list[dict]:
         return await self.database.progress(plan_id, viewer_id)
+
+    async def export_progress(self, plan_id: int, viewer_id: int, lang: str) -> tuple[bytes, str]:
+        plan = await self.database.get_plan(plan_id, viewer_id)
+        sessions = await self.database.plan_sessions(plan_id)
+        rows = await self.database.progress(plan_id, viewer_id)
+        data = await run_in_threadpool(export.build, plan, sessions, rows, lang)
+        name = f"{'seguimento' if lang == 'gl' else 'seguimiento'}-{plan['week_start']:%Y-%m-%d}.xlsx"
+        return data, name
 
     async def import_file(self, filename: str, data: bytes) -> dict:
         # Ler Excel/Word bloquea a CPU: fóra do bucle de eventos

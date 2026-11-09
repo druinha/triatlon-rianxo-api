@@ -238,15 +238,21 @@ proc: BEGIN
            duration_min SMALLINT UNSIGNED PATH '$.duration_min', content TEXT CHARACTER SET utf8mb4 PATH '$.content')) j
    WHERE j.id IS NULL OR NOT EXISTS (SELECT 1 FROM plan_sessions x WHERE x.id = j.id AND x.plan_id = v_id);
 
-  -- Avísase aos atletas só cando pasa a publicado por primeira vez
-  IF p_status = 'published' AND COALESCE(v_was, '') <> 'published' THEN
+  -- Avisos aos atletas (e titores) aos que lles toca este plan:
+  --   plan_published → a primeira vez que se publica
+  --   plan_updated   → ao gardar cambios nun plan xa publicado; non se repite mentres
+  --                    teñan sen ler un aviso deste mesmo plan (así non lles chegan dez seguidos)
+  IF p_status = 'published' THEN
     INSERT INTO notifications (user_id, kind, athlete_id, ref_id)
-    SELECT u.uid, 'plan_published', u.aid, v_id
+    SELECT u.uid, IF(COALESCE(v_was, '') = 'published', 'plan_updated', 'plan_published'), u.aid, v_id
       FROM (SELECT a.user_id AS uid, a.id AS aid FROM athletes a
              WHERE a.is_active = 1 AND a.user_id IS NOT NULL AND Plan_ResolveId(a.id, p_week) = v_id
             UNION
             SELECT gd.user_id, a.id FROM athletes a JOIN athlete_guardians gd ON gd.athlete_id = a.id
-             WHERE a.is_active = 1 AND Plan_ResolveId(a.id, p_week) = v_id) u;
+             WHERE a.is_active = 1 AND Plan_ResolveId(a.id, p_week) = v_id) u
+     WHERE NOT EXISTS (SELECT 1 FROM notifications n
+                        WHERE n.user_id = u.uid AND n.athlete_id = u.aid AND n.ref_id = v_id
+                          AND n.kind IN ('plan_published', 'plan_updated') AND n.read_at IS NULL);
   END IF;
 
   SELECT 'ok' AS status, v_id AS id;
@@ -257,7 +263,7 @@ CREATE PROCEDURE Plan_Delete(IN p_plan_id BIGINT UNSIGNED, IN p_viewer_id BIGINT
 proc: BEGIN
   IF NOT EXISTS (SELECT 1 FROM training_plans WHERE id = p_plan_id) THEN SELECT 'not_found' AS status; LEAVE proc; END IF;
   IF NOT User_IsCoach(p_viewer_id) THEN SELECT 'forbidden' AS status; LEAVE proc; END IF;
-  DELETE FROM notifications WHERE kind = 'plan_published' AND ref_id = p_plan_id;
+  DELETE FROM notifications WHERE kind IN ('plan_published', 'plan_updated') AND ref_id = p_plan_id;
   DELETE FROM training_plans WHERE id = p_plan_id;
   SELECT 'ok' AS status;
 END $$
@@ -338,6 +344,17 @@ BEGIN
    WHERE a.is_active = 1 AND User_IsCoach(p_viewer_id) AND v_week IS NOT NULL
      AND Plan_ResolveId(a.id, v_week) = p_plan_id
    ORDER BY a.is_minor, a.full_name;
+END $$
+
+-- Datos básicos dun plan (adestrador), para a exportación do seguimento
+DROP PROCEDURE IF EXISTS Plan_GetById $$
+CREATE PROCEDURE Plan_GetById(IN p_plan_id BIGINT UNSIGNED, IN p_viewer_id BIGINT UNSIGNED)
+BEGIN
+  SELECT p.id, p.week_start, p.scope, p.status, g.name AS group_name, a.full_name AS athlete_name
+    FROM training_plans p
+    LEFT JOIN training_groups g ON g.id = p.group_id
+    LEFT JOIN athletes a ON a.id = p.athlete_id
+   WHERE p.id = p_plan_id AND User_IsCoach(p_viewer_id);
 END $$
 
 DELIMITER ;

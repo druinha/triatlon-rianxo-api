@@ -111,6 +111,18 @@ check("any day of week → same week", ana.get(f"/plans/athlete/{ana_id}?week={(
 c = coach.get(f"/plans/athlete/{ana_id}?week={W}").json()
 check("coach sees but can't mark", c["plan_id"] == gen_id and c["can_mark"] is False)
 
+print("\n— Cambios nun plan publicado")
+ana.post("/notifications/read")
+cur = coach.get(f"/plans/editor?week={W}").json()["sessions"]
+body = {**upd, "sessions": [{k: x[k] for k in ("id", "day", "sport", "title", "duration_min", "content")} for x in cur]}
+coach.post("/plans/", json=body)
+n = ana.get("/notifications/").json()
+check("athlete told about change", n["unread"] == 1 and n["items"][0]["kind"] == "plan_updated"
+      and n["items"][0]["week_start"] == W, n["items"][:1])
+coach.post("/plans/", json=body)
+check("no second unread change notice", ana.get("/notifications/").json()["unread"] == 1)
+ana.post("/notifications/read")
+
 print("\n— Feito")
 r = ana.post(f"/plans/sessions/{swim_id}/done", json={"athlete_id": ana_id, "rpe": 7, "comment": "Custou"})
 check("mark done", r.status_code == 204, r.text)
@@ -173,6 +185,18 @@ prog = {p["athlete_id"]: p for p in coach.get(f"/plans/{gen_id}/progress").json(
 check("general recipients", uxia_id in prog and ana_id not in prog and bea_id not in prog, list(prog))
 check("uxía done shown", [x["session_id"] for x in prog[uxia_id]["done"]] == [swim_id], prog[uxia_id])
 check("athlete can't see progress", ana.get(f"/plans/{gen_id}/progress").status_code == 403)
+r = coach.get(f"/plans/{gen_id}/progress.xlsx?lang=gl")
+check("export xlsx", r.status_code == 200 and r.content[:2] == b"PK"
+      and "seguimento-" in r.headers.get("content-disposition", ""), r.status_code)
+from openpyxl import load_workbook
+wbx = load_workbook(io.BytesIO(r.content))
+ws = wbx["Seguimento"]
+names = [ws.cell(row=i, column=1).value for i in range(5, ws.max_row + 1)]
+check("export rows", "Uxía" in names and ws.cell(row=4, column=1).value == "Atleta", names)
+check("export formula", str(ws.cell(row=5, column=ws.max_column).value).startswith("=COUNTIF("))
+check("export comments sheet", wbx["Comentarios"].max_row >= 1)
+check("export es", "seguimiento-" in coach.get(f"/plans/{gen_id}/progress.xlsx?lang=es").headers.get("content-disposition", ""))
+check("athlete can't export", ana.get(f"/plans/{gen_id}/progress.xlsx").status_code == 403)
 
 print("\n— Importar")
 wb = Workbook()
