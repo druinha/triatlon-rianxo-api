@@ -5,6 +5,8 @@ from starlette.concurrency import run_in_threadpool
 from app.domains.members.plans import export, importer
 from app.domains.members.plans.repository import PlanRepository
 from app.domains.members.plans.schemas import DoneIn, GroupIn, PlanIn
+from app.domains.members.consents.management import ConsentManagement
+from app.domains.members.consents.repository import ConsentRepository
 
 
 def monday_of(d: date) -> date:
@@ -86,4 +88,6 @@ class PlanManagement:
         return data
 
     async def set_done(self, session_id: int, viewer_id: int, body: DoneIn) -> None:
+        if body.done:
+            await ConsentManagement(ConsentRepository(self.database.db)).require_training(body.athlete_id)
         await self.database.set_done(session_id, body.athlete_id, viewer_id, body.done, body.rpe, body.comment)

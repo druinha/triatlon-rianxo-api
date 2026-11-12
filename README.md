@@ -18,6 +18,7 @@ deploy/            servizo systemd e bloque de Caddy
 tests/flow_test.py    contas e invitacións (45 comprobacións)
 tests/profile_test.py perfil, permisos e fotos (54 comprobacións)
 tests/races_test.py   calendario, visibilidade e web pública (51 comprobacións)
+tests/consents_test.py consentimentos de adestramento e imaxe (19 comprobacións)
 ```
 
 ## Seguridade
@@ -68,6 +69,7 @@ mysql -u root -p triatlon_rianxo < db/010_schema_tests.sql
 mysql -u root -p triatlon_rianxo < db/011_procedures_tests.sql
 mysql -u root -p triatlon_rianxo < db/012_schema_plans.sql
 mysql -u root -p triatlon_rianxo < db/013_procedures_plans.sql
+mysql -u root -p triatlon_rianxo < db/014_consents.sql
 # Opcional: carreiras de nov. 2026 a out. 2027 no calendario
 mysql -u root -p triatlon_rianxo < db/009_seed_races_2027.sql
 uvicorn app.main:app --reload --port 8001

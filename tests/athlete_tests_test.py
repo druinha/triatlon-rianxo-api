@@ -25,6 +25,10 @@ def accept(token):
     c = client()
     r = c.post("/invitations/accept", json={"token": token, "password": "contrasinal-longo-1", "consent": True})
     assert r.status_code == 204, r.text
+    # Os tests e as sesións feitas precisan o consentimento de adestramento
+    for a in c.get("/consents/mine").json():
+        c.post(f"/consents/{a['athlete_id']}", json={"training": True, "img_web": True, "img_social": True,
+                                                     "img_whatsapp": True, "img_print": True})
     return c
 
 

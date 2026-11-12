@@ -3,6 +3,8 @@ from fastapi import HTTPException
 from app.domains.members.athlete_tests import zones as calc
 from app.domains.members.athlete_tests.repository import TestRepository
 from app.domains.members.athlete_tests.schemas import SPORT_OF, ReviewIn, TestIn, ZonesIn, check_zone_values
+from app.domains.members.consents.management import ConsentManagement
+from app.domains.members.consents.repository import ConsentRepository
 
 # Cada canto hai que repetir un test (o atleta ve o aviso e o adestrador a lista)
 DUE_DAYS = 180
@@ -26,6 +28,7 @@ class TestManagement:
         }
 
     async def create(self, athlete_id: int, editor_id: int, body: TestIn) -> dict:
+        await ConsentManagement(ConsentRepository(self.database.db)).require_training(athlete_id)
         results, zones = calc.compute(body.kind, body.data)
         test_id = await self.database.create(
             athlete_id, editor_id, body.sport, body.kind, body.test_date, body.data,

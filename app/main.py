@@ -9,6 +9,7 @@ from app.domains.accounts.invitations.router import router as invitations_router
 from app.domains.accounts.users.router import router as users_router
 from app.domains.members.athlete_tests.router import router as tests_router
 from app.domains.members.athletes.router import router as athletes_router
+from app.domains.members.consents.router import router as consents_router
 from app.domains.members.notifications.router import router as notifications_router
 from app.domains.members.plans.router import router as plans_router
 from app.domains.members.races.router import public_router as public_races_router
@@ -28,7 +29,7 @@ if get_settings().cors_list:
     )
 
 for r in (auth_router, invitations_router, users_router, athletes_router, races_router, public_races_router,
-          tests_router, notifications_router, plans_router):
+          tests_router, notifications_router, plans_router, consents_router):
     app.include_router(r, prefix="/api")
 
 

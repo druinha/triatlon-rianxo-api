@@ -4,6 +4,8 @@ from fastapi import HTTPException
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
+
 from app.domains.accounts.auth.queries import (
     CONSUME_PASSWORD_RESET,
     COUNT_RECENT_LOGIN_FAILURES,
@@ -73,6 +75,12 @@ class AuthRepository:
         user = dict(row)
         user["roles"] = user["roles"].split(",") if user["roles"] else []
         user["athletes"] = json.loads(user["athletes"]) if user["athletes"] else []
+        # Consentimentos sen responder ou dunha versión vella do texto: hai que volver pedilos
+        version = get_settings().consent_version
+        for a in user["athletes"]:
+            a["training"] = bool(a.get("training"))
+            a["consent_pending"] = a.get("consent_version") != version
+        user["consents_pending"] = any(a["consent_pending"] for a in user["athletes"])
         return user
 
     async def delete_session(self, token_hash: str) -> None:

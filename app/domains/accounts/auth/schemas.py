@@ -14,6 +14,8 @@ class AthleteRef(BaseModel):
     full_name: str
     is_minor: bool
     photo_file: str | None = None
+    training: bool = False
+    consent_pending: bool = False
 
 
 class MeResponse(BaseModel):
@@ -23,6 +25,7 @@ class MeResponse(BaseModel):
     lang: Literal["gl", "es"]
     roles: list[str]
     athletes: list[AthleteRef]
+    consents_pending: bool = False
 
 
 class TokenRequest(BaseModel):
